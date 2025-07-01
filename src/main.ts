@@ -41,6 +41,12 @@ async function bootstrap() {
     }),
   );
 
+  await app.enableCors({
+    origin: 'http://localhost:3000', // o la URL de tu frontend
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
+
   const config = new DocumentBuilder()
     .setTitle('API')
     .setDescription('Documentacion de la API')
