@@ -6,6 +6,7 @@ import { PassportModule } from '@nestjs/passport';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtStrategy } from './jwt.strategy';
+import { LoginUseCase } from './use-cases/login.use-case';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { JwtStrategy } from './jwt.strategy';
       inject: [ConfigService],
     }),
   ],
-  providers: [PrismaService,JwtStrategy],
+  providers: [PrismaService,JwtStrategy,LoginUseCase],
   controllers: [],
   exports: [],
 })
