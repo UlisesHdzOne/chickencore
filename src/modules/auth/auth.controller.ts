@@ -1,9 +1,16 @@
 import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { RegisterDto } from './dto/register.dto';
 import { Query } from '@nestjs/common';
+import { UseGuards, Req } from '@nestjs/common';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -40,5 +47,15 @@ export class AuthController {
   async refresh(@Query('token') token: string) {
     if (!token) throw new UnauthorizedException('Refresh token requerido');
     return this.authService.refreshToken(token);
+  }
+
+  @ApiOperation({ summary: 'Cerrar sesión' })
+  @ApiResponse({ status: 200, description: 'Sesión cerrada' })
+  @ApiResponse({ status: 404, description: 'No hay sesión activa' })
+  @ApiBearerAuth('access-token') // <== importante
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  async logout(@Req() req) {
+    return this.authService.logout(req.user.userId);
   }
 }

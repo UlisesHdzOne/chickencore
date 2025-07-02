@@ -4,6 +4,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterUseCase } from './use-cases/register.use-case';
 import { RegisterDto } from './dto/register.dto';
 import { RefreshTokenUseCase } from './use-cases/refresh-token.use-case';
+import { LogoutUseCase } from './use-cases/logout.use-case';
 
 @Injectable()
 export class AuthService {
@@ -11,6 +12,7 @@ export class AuthService {
     private readonly loginUseCase: LoginUseCase,
     private readonly registerUseCase: RegisterUseCase,
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
+    private readonly logoutUseCase: LogoutUseCase,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -23,5 +25,9 @@ export class AuthService {
 
   async refreshToken(token: string) {
     return this.refreshTokenUseCase.execute(token);
+  }
+
+  async logout(userId: number) {
+    return this.logoutUseCase.execute(userId);
   }
 }
