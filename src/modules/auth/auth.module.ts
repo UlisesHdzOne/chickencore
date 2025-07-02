@@ -9,6 +9,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { LoginUseCase } from './use-cases/login.use-case';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { RegisterUseCase } from './use-cases/register.use-case';
 
 @Module({
   imports: [
@@ -26,7 +27,13 @@ import { AuthController } from './auth.controller';
       inject: [ConfigService],
     }),
   ],
-  providers: [PrismaService, JwtStrategy, LoginUseCase, AuthService],
+  providers: [
+    PrismaService,
+    JwtStrategy,
+    LoginUseCase,
+    AuthService,
+    RegisterUseCase,
+  ],
   controllers: [AuthController],
   exports: [AuthService],
 })
