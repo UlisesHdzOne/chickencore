@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RegisterDto } from './dto/register.dto';
+import { Query } from '@nestjs/common';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -30,5 +31,14 @@ export class AuthController {
       if (error.status === 409) throw error;
       throw error;
     }
+  }
+
+  @ApiOperation({ summary: 'Renovar access token' })
+  @ApiResponse({ status: 200, description: 'Nuevo access token generado' })
+  @ApiResponse({ status: 401, description: 'Token inválido' })
+  @Post('refresh-token')
+  async refresh(@Query('token') token: string) {
+    if (!token) throw new UnauthorizedException('Refresh token requerido');
+    return this.authService.refreshToken(token);
   }
 }
