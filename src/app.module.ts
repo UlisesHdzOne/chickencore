@@ -3,23 +3,32 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { config } from 'process';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     AuthModule,
-    MailerModule.forRoot({
-      transport: {
-        host: 'smtp.mailersend.net',
-        port: 2525,
-        secure: false,
-        auth: {
-          user: 'MS_1z165M@test-zxk54v861opljy6v.mlsender.net',
-          pass: 'mssp.ikB4kJD.neqvygmyj2zg0p7w.EAtoO1O',
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        transport: {
+          host: configService.get('MAIL_HOST'),
+          port: Number(configService.get('MAIL_PORT')),
+          secure: false,
+          auth: {
+            user: configService.get('MAIL_USER'),
+            pass: configService.get('MAIL_PASS'),
+          },
         },
-      },
-      defaults: {
-        from: '"No Reply" <no-reply@test-zxk54v861opljy6v.mlsender.net>',
-      },
+        defaults: {
+          from: configService.get('MAIL_FROM'),
+        },
+      }),
     }),
   ],
   controllers: [AppController],
