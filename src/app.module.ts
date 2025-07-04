@@ -9,16 +9,16 @@ import { MailerModule } from '@nestjs-modules/mailer';
     AuthModule,
     MailerModule.forRoot({
       transport: {
-        host: 'smtp.tu-servidor.com',
-        port: 587,
+        host: 'smtp.mailersend.net',
+        port: 2525,
         secure: false,
         auth: {
-          user: '191244@ids.upchiapas.edu.mx',
-          pass: 'ulises209',
+          user: 'MS_1z165M@test-zxk54v861opljy6v.mlsender.net',
+          pass: 'mssp.ikB4kJD.neqvygmyj2zg0p7w.EAtoO1O',
         },
       },
       defaults: {
-        from: '"No Reply" <no-reply@tu-dominio.com>',
+        from: '"No Reply" <no-reply@test-zxk54v861opljy6v.mlsender.net>',
       },
     }),
   ],

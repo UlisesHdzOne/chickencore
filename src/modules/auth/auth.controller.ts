@@ -11,6 +11,7 @@ import { RegisterDto } from './dto/register.dto';
 import { Query } from '@nestjs/common';
 import { UseGuards, Req } from '@nestjs/common';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -57,5 +58,15 @@ export class AuthController {
   @Post('logout')
   async logout(@Req() req) {
     return this.authService.logout(req.user.userId);
+  }
+
+  @ApiOperation({ summary: 'Solicitar restablecimiento de contraseña' })
+  @ApiResponse({
+    status: 200,
+    description: 'Correo enviado si existe el usuario',
+  })
+  @Post('forgot-password')
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
   }
 }

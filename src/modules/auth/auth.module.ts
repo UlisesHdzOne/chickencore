@@ -12,6 +12,7 @@ import { AuthController } from './auth.controller';
 import { RegisterUseCase } from './use-cases/register.use-case';
 import { RefreshTokenUseCase } from './use-cases/refresh-token.use-case';
 import { LogoutUseCase } from './use-cases/logout.use-case';
+import { ForgotPasswordUseCase } from './use-cases/forgot-password.use-case';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { LogoutUseCase } from './use-cases/logout.use-case';
     RegisterUseCase,
     RefreshTokenUseCase,
     LogoutUseCase,
+    ForgotPasswordUseCase,
   ],
   controllers: [AuthController],
   exports: [AuthService],
