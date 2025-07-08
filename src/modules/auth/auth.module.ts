@@ -13,6 +13,7 @@ import { RegisterUseCase } from './use-cases/register.use-case';
 import { RefreshTokenUseCase } from './use-cases/refresh-token.use-case';
 import { LogoutUseCase } from './use-cases/logout.use-case';
 import { ForgotPasswordUseCase } from './use-cases/forgot-password.use-case';
+import { MailService } from './services/mail.service';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ForgotPasswordUseCase } from './use-cases/forgot-password.use-case';
     }),
   ],
   providers: [
+    MailService,
     PrismaService,
     JwtStrategy,
     LoginUseCase,

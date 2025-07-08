@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
-import { MailerService } from '@nestjs-modules/mailer';
+import { MailService } from '../services/mail.service';
 import { randomBytes } from 'crypto';
 import { addHours } from 'date-fns';
 
@@ -8,7 +8,7 @@ import { addHours } from 'date-fns';
 export class ForgotPasswordUseCase {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly mailerService: MailerService,
+    private readonly mailService: MailService,
   ) {}
 
   async execute(email: string) {
@@ -29,11 +29,11 @@ export class ForgotPasswordUseCase {
 
         const resetLink = `https://tu-frontend.com/reset-password?token=${token}`;
 
-        await this.mailerService.sendMail({
-          to: email,
-          subject: 'Restablecimiento de contraseña',
-          text: `Ingresa a este enlace para restablecer tu contraseña: ${resetLink}`,
-        });
+        await this.mailService.sendMail(
+          email,
+          'Restablecimiento de contraseña',
+          `Ingresa a este enlace para restablecer tu contraseña: ${resetLink}`,
+        );
       }
 
       // Siempre responde lo mismo, exista o no el usuario
