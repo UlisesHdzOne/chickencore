@@ -6,6 +6,7 @@ import { RegisterDto } from './dto/register.dto';
 import { RefreshTokenUseCase } from './use-cases/refresh-token.use-case';
 import { LogoutUseCase } from './use-cases/logout.use-case';
 import { ForgotPasswordUseCase } from './use-cases/forgot-password.use-case';
+import { SecurityValidationUseCase } from './use-cases/security-validation.use-case';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +16,7 @@ export class AuthService {
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
     private readonly logoutUseCase: LogoutUseCase,
     private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
+    private readonly securityValidationUseCase: SecurityValidationUseCase,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -35,5 +37,9 @@ export class AuthService {
 
   async forgotPassword(email: string) {
     return this.forgotPasswordUseCase.execute(email);
+  }
+
+  async checkPasswordStrength(password: string) {
+    return this.securityValidationUseCase.checkPasswordStrength(password);
   }
 }

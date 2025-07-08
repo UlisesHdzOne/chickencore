@@ -13,25 +13,39 @@ enum Role {
   GUEST
 }
 
+enum SecurityEventType {
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  PASSWORD_CHANGE
+  EMAIL_VERIFICATION
+  TWO_FACTOR_ENABLED
+  TWO_FACTOR_DISABLED
+  SESSION_LOGOUT
+  ACCOUNT_LOCKED
+}
+
 model User {
   id                  Int                  @id @default(autoincrement())
   name                String?
   email               String               @unique
   password            String
   role                Role                 @default(USER)
+  isActive            Boolean              @default(true)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   refreshToken        RefreshToken?
   passwordResetTokens PasswordResetToken[] // nombre plural
+  securityLogs        SecurityLog[]
 }
 
 model RefreshToken {
   id        Int       @id @default(autoincrement())
   token     String    @unique
   userId    Int       @unique
-  user      User      @relation(fields: [userId], references: [id])
   createdAt DateTime  @default(now())
   expiresAt DateTime?
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 model PasswordResetToken {
@@ -39,5 +53,19 @@ model PasswordResetToken {
   userId    Int
   token     String   @unique
   expiresAt DateTime
-  user      User     @relation(fields: [userId], references: [id])
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model SecurityLog {
+  id        Int               @id @default(autoincrement())
+  userId    Int
+  eventType SecurityEventType
+  details   String?
+  ipAddress String?
+  userAgent String?
+  success   Boolean           @default(true)
+  createdAt DateTime          @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }

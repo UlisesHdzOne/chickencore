@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -12,6 +13,7 @@ import { Query } from '@nestjs/common';
 import { UseGuards, Req } from '@nestjs/common';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { CheckPasswordStrengthDto } from './dto/check-password-strength.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -68,5 +70,12 @@ export class AuthController {
   @Post('forgot-password')
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto.email);
+  }
+
+  @ApiOperation({ summary: 'Verificar fortaleza de contraseña' })
+  @ApiBody({ type: CheckPasswordStrengthDto })
+  @Post('check-password-strength')
+  async checkPasswordStrength(@Body() dto: CheckPasswordStrengthDto) {
+    return this.authService.checkPasswordStrength(dto.password);
   }
 }
