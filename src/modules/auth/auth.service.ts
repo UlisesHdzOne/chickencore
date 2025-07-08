@@ -1,3 +1,4 @@
+import { SendVerificationEmailUseCase } from './use-cases/send-verification-email.use-case';
 import { Injectable } from '@nestjs/common';
 import { LoginUseCase } from './use-cases/login.use-case';
 import { LoginDto } from './dto/login.dto';
@@ -17,6 +18,7 @@ export class AuthService {
     private readonly logoutUseCase: LogoutUseCase,
     private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
     private readonly securityValidationUseCase: SecurityValidationUseCase,
+    private readonly sendVerificationEmailUseCase: SendVerificationEmailUseCase,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -41,5 +43,9 @@ export class AuthService {
 
   async checkPasswordStrength(password: string) {
     return this.securityValidationUseCase.checkPasswordStrength(password);
+  }
+
+  async sendVerificationEmail(email: string) {
+    return this.sendVerificationEmailUseCase.execute(email);
   }
 }

@@ -14,6 +14,7 @@ import { UseGuards, Req } from '@nestjs/common';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { CheckPasswordStrengthDto } from './dto/check-password-strength.dto';
+import { SendVerificationEmailDto } from './dto/send-verification-email.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -77,5 +78,13 @@ export class AuthController {
   @Post('check-password-strength')
   async checkPasswordStrength(@Body() dto: CheckPasswordStrengthDto) {
     return this.authService.checkPasswordStrength(dto.password);
+  }
+
+  @ApiOperation({ summary: 'Enviar email de verificación' })
+  @ApiResponse({ status: 200, description: 'Email de verificación enviado' })
+  @ApiBody({ type: SendVerificationEmailDto })
+  @Post('send-verification-email')
+  async sendVerificationEmail(@Body() dto: SendVerificationEmailDto) {
+    return this.authService.sendVerificationEmail(dto.email);
   }
 }

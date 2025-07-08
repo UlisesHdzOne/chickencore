@@ -15,6 +15,7 @@ import { LogoutUseCase } from './use-cases/logout.use-case';
 import { ForgotPasswordUseCase } from './use-cases/forgot-password.use-case';
 import { MailService } from './services/mail.service';
 import { SecurityValidationUseCase } from './use-cases/security-validation.use-case';
+import { SendVerificationEmailUseCase } from './use-cases/send-verification-email.use-case';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { SecurityValidationUseCase } from './use-cases/security-validation.use-c
     LogoutUseCase,
     ForgotPasswordUseCase,
     SecurityValidationUseCase,
+    SendVerificationEmailUseCase,
   ],
   controllers: [AuthController],
   exports: [AuthService],

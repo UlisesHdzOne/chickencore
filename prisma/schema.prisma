@@ -25,17 +25,19 @@ enum SecurityEventType {
 }
 
 model User {
-  id                  Int                  @id @default(autoincrement())
-  name                String?
-  email               String               @unique
-  password            String
-  role                Role                 @default(USER)
-  isActive            Boolean              @default(true)
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  refreshToken        RefreshToken?
-  passwordResetTokens PasswordResetToken[] // nombre plural
-  securityLogs        SecurityLog[]
+  id                      Int                      @id @default(autoincrement())
+  name                    String?
+  email                   String                   @unique
+  password                String
+  role                    Role                     @default(USER)
+  isActive                Boolean                  @default(true)
+  emailVerified           Boolean                  @default(false)
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  refreshToken            RefreshToken?
+  passwordResetTokens     PasswordResetToken[] // nombre plural
+  securityLogs            SecurityLog[]
+  emailVerificationTokens EmailVerificationToken[]
 }
 
 model RefreshToken {
@@ -68,4 +70,14 @@ model SecurityLog {
   createdAt DateTime          @default(now())
 
   user User @relation(fields: [userId], references: [id])
+}
+
+model EmailVerificationToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
