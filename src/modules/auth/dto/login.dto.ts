@@ -1,4 +1,11 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength, MaxLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  MaxLength,
+  IsOptional,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
@@ -20,4 +27,13 @@ export class LoginDto {
   @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
   @MaxLength(32, { message: 'La contraseña no puede exceder 32 caracteres' })
   password: string;
+
+  @IsOptional()
+  deviceInfo?: string;
+
+  @IsOptional()
+  ipAddress?: string;
+
+  @IsOptional()
+  userAgent?: string;
 }
