@@ -1,4 +1,10 @@
-import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import {
@@ -15,6 +21,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { CheckPasswordStrengthDto } from './dto/check-password-strength.dto';
 import { SendVerificationEmailDto } from './dto/send-verification-email.dto';
+import { LogoutSessionDto } from './dto/logout-session.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -86,5 +93,42 @@ export class AuthController {
   @Post('send-verification-email')
   async sendVerificationEmail(@Body() dto: SendVerificationEmailDto) {
     return this.authService.sendVerificationEmail(dto.email);
+  }
+
+  @ApiOperation({ summary: 'Obtener sesiones activas' })
+  @ApiResponse({ status: 200, description: 'Lista de sesiones activas' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token') // <== importante
+  @Get('sessions') // Cambiado de @Post a @Get
+  async getSessions(@Req() req) {
+    const sessions = await this.authService.getActiveSessions(req.user.userId);
+    // Marcar sesión actual
+    const updated = sessions.map((s) => ({
+      ...s,
+      isCurrent: s.id === req.user.sessionId,
+    }));
+    return updated;
+  }
+
+  @ApiOperation({ summary: 'Cerrar sesión específica' })
+  @ApiResponse({ status: 200, description: 'Sesión cerrada' })
+  @ApiBody({ type: LogoutSessionDto })
+  @ApiBearerAuth('access-token') // <== importante
+  @UseGuards(JwtAuthGuard)
+  @Post('sessions/logout')
+  async logoutSession(@Req() req, @Body() dto: LogoutSessionDto) {
+    return this.authService.logoutSpecificSession(
+      req.user.userId,
+      dto.sessionId,
+    );
+  }
+
+  @ApiOperation({ summary: 'Cerrar todas las sesiones' })
+  @ApiResponse({ status: 200, description: 'Todas las sesiones cerradas' })
+  @ApiBearerAuth('access-token') // <== importante
+  @UseGuards(JwtAuthGuard)
+  @Post('sessions/logout-all')
+  async logoutAll(@Req() req) {
+    return this.authService.logoutAllDevices(req.user.userId);
   }
 }

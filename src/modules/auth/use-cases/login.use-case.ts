@@ -1,3 +1,4 @@
+import { SessionManagementUseCase } from './session-management.use-case';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
@@ -11,6 +12,7 @@ export class LoginUseCase {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly sessionUseCase: SessionManagementUseCase,
   ) {}
 
   async execute(loginDto: LoginDto) {
@@ -36,6 +38,13 @@ export class LoginUseCase {
       update: { token: refreshToken, expiresAt },
       create: { userId: user.id, token: refreshToken, expiresAt },
     });
+
+    const sessionId = await this.sessionUseCase.createSession(
+      user.id,
+      loginDto.deviceInfo ?? '',
+      loginDto.ipAddress ?? '',
+      loginDto.userAgent ?? '',
+    );
 
     return {
       access_token: accessToken,

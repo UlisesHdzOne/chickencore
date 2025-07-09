@@ -38,16 +38,19 @@ model User {
   passwordResetTokens     PasswordResetToken[] // nombre plural
   securityLogs            SecurityLog[]
   emailVerificationTokens EmailVerificationToken[]
+  sessions                UserSession[]
 }
 
 model RefreshToken {
   id        Int       @id @default(autoincrement())
   token     String    @unique
   userId    Int       @unique
+  sessionId String?
   createdAt DateTime  @default(now())
   expiresAt DateTime?
 
-  user User @relation(fields: [userId], references: [id])
+  user    User         @relation(fields: [userId], references: [id])
+  session UserSession? @relation(fields: [sessionId], references: [id])
 }
 
 model PasswordResetToken {
@@ -80,4 +83,19 @@ model EmailVerificationToken {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserSession {
+  id         String   @id @default(uuid())
+  userId     Int
+  deviceInfo String
+  ipAddress  String
+  userAgent  String
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime @default(now())
+  expiresAt  DateTime
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokens RefreshToken[]
 }
