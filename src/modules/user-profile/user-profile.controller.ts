@@ -1,3 +1,4 @@
+import { Multer } from 'multer';
 import {
   Body,
   Controller,
@@ -8,10 +9,14 @@ import {
   Post,
   Put,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
   ApiOperation,
   ApiParam,
   ApiResponse,
@@ -22,6 +27,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UploadProfilePictureDto } from './dto/upload-profile-picture.dto';
 
 @ApiTags('User Profile')
 @Controller('user-profile')
@@ -60,6 +67,24 @@ export class UserProfileController {
       req.user.userId,
       updateProfileDto,
     );
+  }
+
+  @ApiOperation({ summary: 'Subir foto de perfil' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: UploadProfilePictureDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Foto de perfil actualizada exitosamente',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Archivo inválido o muy grande',
+  })
+  @UseGuards(JwtAuthGuard)
+  @Post('picture')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadProfilePicture(@Req() req, @UploadedFile() file: Multer.File) {
+    return this.userProfileService.uploadProfilePicture(req.user.userId, file);
   }
   // === ENDPOINTS DE DIRECCIONES ===
 

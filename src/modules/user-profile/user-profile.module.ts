@@ -5,6 +5,7 @@ import { GetUserProfileUseCase } from './use-cases/basic/get-user-profile.use-ca
 import { PrismaModule } from '../prisma/prisma.module';
 import { ManageAddressesUseCase } from './use-cases/basic/manage-addresses.use-case';
 import { UpdateProfileUseCase } from './use-cases/basic/update-profile.use-case';
+import { UploadProfilePictureUseCase } from './use-cases/basic/upload-profile-picture.use-case';
 
 @Module({
   imports: [PrismaModule],
@@ -16,6 +17,7 @@ import { UpdateProfileUseCase } from './use-cases/basic/update-profile.use-case'
     GetUserProfileUseCase,
     ManageAddressesUseCase,
     UpdateProfileUseCase,
+    UploadProfilePictureUseCase,
   ],
 
   exports: [],
