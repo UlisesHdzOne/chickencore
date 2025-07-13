@@ -1,12 +1,12 @@
 import { Multer } from 'multer';
-import { ManageAddressesUseCase } from './use-cases/basic/manage-addresses.use-case';
+import { ManageAddressesUseCase } from './use-cases/address/manage-addresses.use-case';
 import { Injectable } from '@nestjs/common';
 import { GetUserProfileUseCase } from './use-cases/basic/get-user-profile.use-case';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateProfileUseCase } from './use-cases/basic/update-profile.use-case';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { UploadProfilePictureUseCase } from './use-cases/basic/upload-profile-picture.use-case';
+import { UploadProfilePictureUseCase } from './use-cases/media/upload-profile-picture.use-case';
 
 @Injectable()
 export class UserProfileService {
