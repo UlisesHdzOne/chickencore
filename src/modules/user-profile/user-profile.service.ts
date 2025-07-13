@@ -3,16 +3,23 @@ import { Injectable } from '@nestjs/common';
 import { GetUserProfileUseCase } from './use-cases/basic/get-user-profile.use-case';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { CreateAddressDto } from './dto/create-address.dto';
+import { UpdateProfileUseCase } from './use-cases/basic/update-profile.use-case';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UserProfileService {
   constructor(
     private readonly getUserProfileUseCase: GetUserProfileUseCase,
     private readonly manageAddressesUseCase: ManageAddressesUseCase,
+    private readonly updateProfileUseCase: UpdateProfileUseCase,
   ) {}
 
   async getUserProfile(userId: number) {
     return this.getUserProfileUseCase.execute(userId);
+  }
+
+  async updateProfile(userId: number, updateProfileDto: UpdateProfileDto) {
+    return this.updateProfileUseCase.execute(userId, updateProfileDto);
   }
 
   // Métodos de direcciones

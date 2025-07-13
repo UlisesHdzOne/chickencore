@@ -21,6 +21,7 @@ import { UserProfileService } from './user-profile.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @ApiTags('User Profile')
 @Controller('user-profile')
@@ -43,6 +44,23 @@ export class UserProfileController {
     return this.userProfileService.getUserProfile(req.user.userId);
   }
 
+  @ApiOperation({ summary: 'Actualizar información básica del perfil' })
+  @ApiResponse({
+    status: 200,
+    description: 'Perfil actualizado exitosamente',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuario no encontrado',
+  })
+  @UseGuards(JwtAuthGuard)
+  @Put()
+  async updateProfile(@Req() req, @Body() updateProfileDto: UpdateProfileDto) {
+    return this.userProfileService.updateProfile(
+      req.user.userId,
+      updateProfileDto,
+    );
+  }
   // === ENDPOINTS DE DIRECCIONES ===
 
   @ApiOperation({ summary: 'Obtener todas las direcciones del usuario' })
