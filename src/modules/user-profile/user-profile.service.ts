@@ -7,6 +7,7 @@ import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateProfileUseCase } from './use-cases/basic/update-profile.use-case';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UploadProfilePictureUseCase } from './use-cases/media/upload-profile-picture.use-case';
+import { ValidateAddressUseCase } from './use-cases/address/validate-address.use-case';
 
 @Injectable()
 export class UserProfileService {
@@ -15,6 +16,7 @@ export class UserProfileService {
     private readonly manageAddressesUseCase: ManageAddressesUseCase,
     private readonly updateProfileUseCase: UpdateProfileUseCase,
     private readonly uploadProfilePictureUseCase: UploadProfilePictureUseCase,
+    private readonly validateAddressUseCase: ValidateAddressUseCase,
   ) {}
 
   async getUserProfile(userId: number) {
@@ -55,5 +57,9 @@ export class UserProfileService {
 
   async setDefaultAddress(userId: number, addressId: number) {
     return this.manageAddressesUseCase.setDefaultAddress(userId, addressId);
+  }
+
+  async validateAddress(addressData: CreateAddressDto) {
+    return this.validateAddressUseCase.execute(addressData);
   }
 }

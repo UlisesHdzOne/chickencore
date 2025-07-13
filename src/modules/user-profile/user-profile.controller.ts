@@ -216,4 +216,15 @@ export class UserProfileController {
       addressId,
     );
   }
+
+  @ApiOperation({ summary: 'Validar dirección antes de guardar' })
+  @ApiResponse({
+    status: 200,
+    description: 'Resultado de validación de dirección',
+  })
+  @UseGuards(JwtAuthGuard)
+  @Post('addresses/validate')
+  async validateAddress(@Body() createAddressDto: CreateAddressDto) {
+    return this.userProfileService.validateAddress(createAddressDto);
+  }
 }
