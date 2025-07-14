@@ -3,7 +3,7 @@ import { IsString, Matches } from 'class-validator';
 
 export class NearbyCoordinatesDto {
   @ApiProperty({
-    example: '16.700930599045403,-93.00893913210207',
+    example: '19.4180699,-99.1646834',
     description: 'Coordenadas separadas por coma: latitud,longitud',
   })
   @IsString()
