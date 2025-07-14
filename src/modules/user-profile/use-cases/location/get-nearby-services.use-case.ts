@@ -46,7 +46,6 @@ export class GetNearbyServicesUseCase {
         center: coordinates,
       };
 
-      // Obtener direcciones cercanas del usuario si está habilitado
       if (includeAddresses) {
         result.addresses = await this.getNearbyUserAddresses(
           userId,
@@ -57,7 +56,6 @@ export class GetNearbyServicesUseCase {
         result.totalFound += result.addresses.length;
       }
 
-      // Obtener servicios cercanos (placeholder para futura implementación)
       if (serviceTypes.length > 0) {
         result.services = await this.getNearbyExternalServices(
           coordinates,
@@ -82,7 +80,6 @@ export class GetNearbyServicesUseCase {
     addressId: number,
     options: NearbyOptions = {},
   ): Promise<NearbyResult> {
-    // Obtener las coordenadas de la dirección
     const address = await this.prisma.address.findFirst({
       where: {
         id: addressId,
@@ -125,8 +122,6 @@ export class GetNearbyServicesUseCase {
     longitude: number,
     radiusKm: number,
   ): Promise<any[]> {
-    // Fórmula de Haversine para calcular distancia
-    // 1 grado ≈ 111 km, entonces radius en grados ≈ radiusKm / 111
     const radiusDegrees = radiusKm / 111;
 
     const addresses = await this.prisma.address.findMany({
@@ -148,7 +143,6 @@ export class GetNearbyServicesUseCase {
       },
     });
 
-    // Filtrar por distancia exacta y agregar información de distancia
     return addresses
       .map((address) => {
         if (!address.latitude || !address.longitude) return null;
@@ -163,13 +157,17 @@ export class GetNearbyServicesUseCase {
         if (distance <= radiusKm) {
           return {
             ...address,
-            distance: Math.round(distance * 100) / 100, // redondear a 2 decimales
+            distance: Math.round(distance * 100) / 100,
           };
         }
         return null;
       })
       .filter(Boolean)
-      .sort((a, b) => a.distance - b.distance); // ordenar por distancia
+      .sort((a, b) => {
+        if (!a) return 1;
+        if (!b) return -1;
+        return a.distance - b.distance;
+      });
   }
 
   private async getNearbyExternalServices(
@@ -178,15 +176,10 @@ export class GetNearbyServicesUseCase {
     radius: number,
     limit: number,
   ): Promise<any[]> {
-    // TODO: Implementar integración con APIs de servicios externos
-    // Por ejemplo: Google Places API, Foursquare, etc.
-
+    // Implementar integración futura con APIs externas
     console.log(
       `Buscando servicios ${serviceTypes.join(', ')} en radio de ${radius}km desde ${coordinates.latitude}, ${coordinates.longitude}`,
     );
-
-    // Por ahora retornamos un array vacío
-    // En una implementación real, aquí harías llamadas a APIs externas
     return [];
   }
 
@@ -195,7 +188,6 @@ export class GetNearbyServicesUseCase {
     longitude: number;
   } {
     try {
-      // Soportar formatos: "lat,lng" o "lat lng" o JSON
       let lat: number, lng: number;
 
       if (coordinatesString.includes(',')) {
@@ -207,20 +199,15 @@ export class GetNearbyServicesUseCase {
         lat = parseFloat(latStr.trim());
         lng = parseFloat(lngStr.trim());
       } else {
-        // Intentar parsear como JSON
         const parsed = JSON.parse(coordinatesString);
         lat = parsed.latitude || parsed.lat;
         lng = parsed.longitude || parsed.lng;
       }
 
-      if (isNaN(lat) || isNaN(lng)) {
-        throw new Error('Coordenadas inválidas');
-      }
+      if (isNaN(lat) || isNaN(lng)) throw new Error('Coordenadas inválidas');
 
-      // Validar rangos
-      if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      if (lat < -90 || lat > 90 || lng < -180 || lng > 180)
         throw new Error('Coordenadas fuera de rango');
-      }
 
       return { latitude: lat, longitude: lng };
     } catch (error) {
@@ -236,8 +223,7 @@ export class GetNearbyServicesUseCase {
     lat2: number,
     lon2: number,
   ): number {
-    // Fórmula de Haversine para calcular distancia entre dos puntos
-    const R = 6371; // Radio de la Tierra en kilómetros
+    const R = 6371;
     const dLat = this.deg2rad(lat2 - lat1);
     const dLon = this.deg2rad(lon2 - lon1);
     const a =
@@ -247,8 +233,7 @@ export class GetNearbyServicesUseCase {
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distancia en kilómetros
-    return distance;
+    return R * c;
   }
 
   private deg2rad(deg: number): number {
