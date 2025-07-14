@@ -1,3 +1,4 @@
+import { GetNearbyServicesUseCase } from './use-cases/location/get-nearby-services.use-case';
 import { Multer } from 'multer';
 import { ManageAddressesUseCase } from './use-cases/address/manage-addresses.use-case';
 import { Injectable } from '@nestjs/common';
@@ -19,6 +20,7 @@ export class UserProfileService {
     private readonly uploadProfilePictureUseCase: UploadProfilePictureUseCase,
     private readonly validateAddressUseCase: ValidateAddressUseCase,
     private readonly geocodeAddressUseCase: GeocodeAddressUseCase,
+    private readonly getNearbyServicesUseCase: GetNearbyServicesUseCase,
   ) {}
 
   async getUserProfile(userId: number) {
@@ -88,9 +90,42 @@ export class UserProfileService {
   }
 
   async getNearbyAddressesFromString(userId: number, coordinates: string) {
-    return this.geocodeAddressUseCase.getNearbyAddressesFromString(
+    return this.getNearbyServicesUseCase.executeFromCoordinatesString(
       userId,
       coordinates,
+      { includeAddresses: true, radius: 5 },
+    );
+  }
+
+  // Nuevo método para servicios cercanos con más opciones
+
+  async getNearbyServices(
+    userId: number,
+    coordinates: { latitude: number; longitude: number },
+    options: {
+      radius?: number;
+      serviceTypes?: string[];
+      includeAddresses?: boolean;
+      limit?: number;
+    } = {},
+  ) {
+    return this.getNearbyServicesUseCase.execute(userId, coordinates, options);
+  }
+
+  async getNearbyServicesFromAddress(
+    userId: number,
+    addressId: number,
+    options: {
+      radius?: number;
+      serviceTypes?: string[];
+      includeAddresses?: boolean;
+      limit?: number;
+    } = {},
+  ) {
+    return this.getNearbyServicesUseCase.executeFromAddress(
+      userId,
+      addressId,
+      options,
     );
   }
 }
