@@ -8,6 +8,8 @@ import { UpdateProfileUseCase } from './use-cases/basic/update-profile.use-case'
 import { UploadProfilePictureUseCase } from './use-cases/media/upload-profile-picture.use-case';
 import { ValidateAddressUseCase } from './use-cases/address/validate-address.use-case';
 import { GeocodeAddressUseCase } from './use-cases/address/geocode-address.use-case';
+import { GeocodingProvidersService } from './services/geocoding-providers.service';
+import { GetNearbyServicesUseCase } from './use-cases/location/get-nearby-services.use-case';
 
 @Module({
   imports: [PrismaModule],
@@ -16,14 +18,21 @@ import { GeocodeAddressUseCase } from './use-cases/address/geocode-address.use-c
 
   providers: [
     UserProfileService,
+    GeocodingProvidersService,
     GetUserProfileUseCase,
-    ManageAddressesUseCase,
     UpdateProfileUseCase,
     UploadProfilePictureUseCase,
+    ManageAddressesUseCase,
     ValidateAddressUseCase,
     GeocodeAddressUseCase,
+    GetNearbyServicesUseCase,
   ],
 
-  exports: [],
+  exports: [
+    GeocodingProvidersService,
+    ValidateAddressUseCase,
+    GeocodeAddressUseCase,
+    GetNearbyServicesUseCase,
+  ],
 })
 export class UserProfileModule {}
