@@ -2,35 +2,19 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  ServiceUnavailableException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import axios from 'axios';
-
-export interface GeocodeResult {
-  success: boolean;
-  coordinates?: {
-    latitude: number;
-    longitude: number;
-  };
-  accuracy?: string;
-  confidence?: number;
-  address?: {
-    formatted: string;
-    components: {
-      street?: string;
-      city?: string;
-      state?: string;
-      postalCode?: string;
-      country?: string;
-    };
-  };
-  error?: string;
-}
+import {
+  GeocodingProvidersService,
+  GeocodeResult,
+} from '../../services/geocoding-providers.service';
 
 @Injectable()
 export class GeocodeAddressUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly geocodingProviders: GeocodingProvidersService,
+  ) {}
 
   async execute(userId: number, addressId: number): Promise<GeocodeResult> {
     try {
@@ -141,7 +125,7 @@ export class GeocodeAddressUseCase {
           });
 
           // Pequeña pausa para evitar rate limiting
-          await this.sleep(200);
+          await this.geocodingProviders.sleep(200);
         } catch (error) {
           failed++;
           results.push({
@@ -174,8 +158,8 @@ export class GeocodeAddressUseCase {
     try {
       // Intentar con múltiples servicios
       const results = await Promise.allSettled([
-        this.geocodeWithNominatim(fullAddress),
-        this.geocodeWithOpenCage(fullAddress),
+        this.geocodingProviders.geocodeWithNominatim(fullAddress),
+        this.geocodingProviders.geocodeWithOpenCage(fullAddress),
       ]);
 
       // Procesar resultados
@@ -206,80 +190,8 @@ export class GeocodeAddressUseCase {
     }
   }
 
-  private async geocodeWithNominatim(address: string): Promise<GeocodeResult> {
-    try {
-      const response = await axios.get(
-        'https://nominatim.openstreetmap.org/search',
-        {
-          params: {
-            q: address,
-            format: 'json',
-            addressdetails: 1,
-            limit: 1,
-          },
-          timeout: 5000,
-          headers: {
-            'User-Agent': 'ChickenCore-App/1.0',
-          },
-        },
-      );
-
-      if (response.data && response.data.length > 0) {
-        const result = response.data[0];
-        return {
-          success: true,
-          coordinates: {
-            latitude: parseFloat(result.lat),
-            longitude: parseFloat(result.lon),
-          },
-          accuracy: this.getAccuracyFromImportance(result.importance),
-          confidence: parseFloat(result.importance) || 0.5,
-          address: {
-            formatted: result.display_name,
-            components: {
-              street: result.address?.road || result.address?.house_number,
-              city:
-                result.address?.city ||
-                result.address?.town ||
-                result.address?.village,
-              state: result.address?.state,
-              postalCode: result.address?.postcode,
-              country: result.address?.country,
-            },
-          },
-        };
-      }
-
-      return {
-        success: false,
-        error: 'Dirección no encontrada en Nominatim',
-      };
-    } catch (error) {
-      throw new ServiceUnavailableException('Servicio Nominatim no disponible');
-    }
-  }
-
-  private async geocodeWithOpenCage(address: string): Promise<GeocodeResult> {
-    // Nota: Requiere API key para uso en producción
-    // Por ahora retornamos un mock para desarrollo
-    return {
-      success: false,
-      error: 'Servicio OpenCage no configurado',
-    };
-  }
-
   private formatAddress(address: any): string {
     return `${address.street}, ${address.city}, ${address.state} ${address.postalCode}, ${address.country}`;
-  }
-
-  private getAccuracyFromImportance(importance: number): string {
-    if (importance >= 0.7) return 'high';
-    if (importance >= 0.4) return 'medium';
-    return 'low';
-  }
-
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   // Método para obtener direcciones cerca de una ubicación
