@@ -1,32 +1,13 @@
-import {
-  Injectable,
-  BadRequestException,
-  ServiceUnavailableException,
-} from '@nestjs/common';
-import axios from 'axios';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { CreateAddressDto } from '../../dto/create-address.dto';
-
-export interface ValidationResult {
-  isValid: boolean;
-  confidence: number;
-  standardizedAddress?: {
-    street: string;
-    city: string;
-    state: string;
-    postalCode: string;
-    country: string;
-  };
-  coordinates?: {
-    latitude: number;
-    longitude: number;
-  };
-  errors?: string[];
-  suggestions?: string[];
-}
+import {
+  GeocodingProvidersService,
+  ValidationResult,
+} from '../../services/geocoding-providers.service';
 
 @Injectable()
 export class ValidateAddressUseCase {
-  constructor() {}
+  constructor(private readonly geocodingProviders: GeocodingProvidersService) {}
 
   async execute(addressData: CreateAddressDto): Promise<ValidationResult> {
     try {
@@ -112,8 +93,8 @@ export class ValidateAddressUseCase {
     try {
       // Intentar con múltiples servicios
       const results = await Promise.allSettled([
-        this.validateWithNominatim(fullAddress),
-        this.validateWithOpenCage(fullAddress),
+        this.geocodingProviders.validateWithNominatim(fullAddress),
+        this.geocodingProviders.validateWithOpenCage(fullAddress),
       ]);
 
       // Procesar resultados
@@ -146,73 +127,6 @@ export class ValidateAddressUseCase {
       // Retornar validación básica en caso de error
       return this.validateBasicFormat(addressData);
     }
-  }
-
-  private async validateWithNominatim(
-    address: string,
-  ): Promise<ValidationResult> {
-    try {
-      const response = await axios.get(
-        'https://nominatim.openstreetmap.org/search',
-        {
-          params: {
-            q: address,
-            format: 'json',
-            addressdetails: 1,
-            limit: 1,
-          },
-          timeout: 5000,
-          headers: {
-            'User-Agent': 'ChickenCore-App/1.0',
-          },
-        },
-      );
-
-      if (response.data && response.data.length > 0) {
-        const result = response.data[0];
-        return {
-          isValid: true,
-          confidence: parseFloat(result.importance) || 0.5,
-          standardizedAddress: {
-            street: result.display_name.split(',')[0],
-            city:
-              result.address?.city ||
-              result.address?.town ||
-              result.address?.village ||
-              '',
-            state: result.address?.state || '',
-            postalCode: result.address?.postcode || '',
-            country: result.address?.country || 'Mexico',
-          },
-          coordinates: {
-            latitude: parseFloat(result.lat),
-            longitude: parseFloat(result.lon),
-          },
-        };
-      }
-
-      return {
-        isValid: false,
-        confidence: 0.2,
-        errors: ['Dirección no encontrada'],
-      };
-    } catch (error) {
-      throw new ServiceUnavailableException(
-        'Servicio de validación no disponible',
-      );
-    }
-  }
-
-  private async validateWithOpenCage(
-    address: string,
-  ): Promise<ValidationResult> {
-    // Nota: Requiere API key para uso en producción
-    // Por ahora retornamos un mock para desarrollo
-    return {
-      isValid: false,
-      confidence: 0.1,
-      errors: ['Servicio OpenCage no configurado'],
-    };
   }
 
   private validatePostalCode(postalCode: string): boolean {
