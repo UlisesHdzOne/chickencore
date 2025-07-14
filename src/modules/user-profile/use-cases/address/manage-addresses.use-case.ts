@@ -7,11 +7,14 @@ import {
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateAddressDto } from '../../dto/create-address.dto';
 import { UpdateAddressDto } from '../../dto/update-address.dto';
-
+import { ValidateAddressUseCase } from './validate-address.use-case';
 
 @Injectable()
 export class ManageAddressesUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly validateAddressUseCase: ValidateAddressUseCase,
+  ) {}
 
   // Obtener todas las direcciones del usuario
   async getUserAddresses(userId: number) {
@@ -34,22 +37,76 @@ export class ManageAddressesUseCase {
       throw new NotFoundException('Usuario no encontrado');
     }
 
+    // Validar dirección automáticamente antes de crear
+    let addressToSave = createAddressDto;
+    let validationWarnings: string[] = [];
+
+    try {
+      const validationResult =
+        await this.validateAddressUseCase.execute(createAddressDto);
+
+      // Si la validación falla con baja confianza, lanzar error
+      if (!validationResult.isValid && validationResult.confidence < 0.5) {
+        throw new BadRequestException({
+          message: 'Dirección inválida',
+          errors: validationResult.errors,
+          suggestions: validationResult.suggestions,
+        });
+      }
+
+      // Si hay una dirección estandarizada, usarla
+      if (
+        validationResult.standardizedAddress &&
+        validationResult.confidence > 0.7
+      ) {
+        addressToSave = {
+          ...createAddressDto,
+          street:
+            validationResult.standardizedAddress.street ||
+            createAddressDto.street,
+          city:
+            validationResult.standardizedAddress.city || createAddressDto.city,
+          state:
+            validationResult.standardizedAddress.state ||
+            createAddressDto.state,
+          postalCode:
+            validationResult.standardizedAddress.postalCode ||
+            createAddressDto.postalCode,
+          country:
+            validationResult.standardizedAddress.country ||
+            createAddressDto.country,
+        };
+      }
+
+      // Agregar warnings si la confianza es media
+      if (validationResult.confidence < 0.7 && validationResult.suggestions) {
+        validationWarnings = validationResult.suggestions;
+      }
+    } catch (error) {
+      // Si hay error en la validación externa, continuar con la dirección original
+      // pero agregar un warning
+      console.warn('Error en validación automática:', error);
+      validationWarnings = [
+        'No se pudo validar la dirección con servicios externos',
+      ];
+    }
+
     // Verificar que no existe una dirección con el mismo label
     const existingAddress = await this.prisma.address.findFirst({
       where: {
         userId,
-        label: createAddressDto.label,
+        label: addressToSave.label,
       },
     });
 
     if (existingAddress) {
       throw new ConflictException(
-        `Ya existe una dirección con la etiqueta "${createAddressDto.label}"`,
+        `Ya existe una dirección con la etiqueta "${addressToSave.label}"`,
       );
     }
 
     // Si es la primera dirección o se marca como default, actualizar otras direcciones
-    if (createAddressDto.isDefault) {
+    if (addressToSave.isDefault) {
       await this.prisma.address.updateMany({
         where: { userId, isDefault: true },
         data: { isDefault: false },
@@ -64,13 +121,13 @@ export class ManageAddressesUseCase {
     const newAddress = await this.prisma.address.create({
       data: {
         userId,
-        label: createAddressDto.label,
-        street: createAddressDto.street,
-        city: createAddressDto.city,
-        state: createAddressDto.state,
-        postalCode: createAddressDto.postalCode,
-        country: createAddressDto.country || 'Mexico',
-        isDefault: createAddressDto.isDefault || addressCount === 0, // Primera dirección es default automáticamente
+        label: addressToSave.label,
+        street: addressToSave.street,
+        city: addressToSave.city,
+        state: addressToSave.state,
+        postalCode: addressToSave.postalCode,
+        country: addressToSave.country || 'Mexico',
+        isDefault: addressToSave.isDefault || addressCount === 0, // Primera dirección es default automáticamente
       },
     });
 
@@ -82,10 +139,18 @@ export class ManageAddressesUseCase {
       });
     }
 
-    return {
+    const result: any = {
       message: 'Dirección creada exitosamente',
       address: newAddress,
     };
+
+    // Incluir warnings de validación si los hay
+    if (validationWarnings.length > 0) {
+      result.warnings = validationWarnings;
+      result.message += ' (con advertencias de validación)';
+    }
+
+    return result;
   }
 
   // Actualizar dirección existente
