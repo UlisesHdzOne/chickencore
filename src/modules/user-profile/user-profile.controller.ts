@@ -29,10 +29,12 @@ import { UpdateAddressDto } from './dto/update-address.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadProfilePictureDto } from './dto/upload-profile-picture.dto';
+import { NearbyCoordinatesDto } from './dto/nearby-coordinates.dto';
 
 @ApiTags('User Profile')
 @Controller('user-profile')
 @ApiBearerAuth('access-token')
+@UseGuards(JwtAuthGuard)
 export class UserProfileController {
   constructor(private readonly userProfileService: UserProfileService) {}
 
@@ -45,7 +47,6 @@ export class UserProfileController {
     status: 404,
     description: 'Usuario no encontrado',
   })
-  @UseGuards(JwtAuthGuard)
   @Get()
   async getProfile(@Req() req) {
     return this.userProfileService.getUserProfile(req.user.userId);
@@ -60,7 +61,6 @@ export class UserProfileController {
     status: 404,
     description: 'Usuario no encontrado',
   })
-  @UseGuards(JwtAuthGuard)
   @Put()
   async updateProfile(@Req() req, @Body() updateProfileDto: UpdateProfileDto) {
     return this.userProfileService.updateProfile(
@@ -80,7 +80,6 @@ export class UserProfileController {
     status: 400,
     description: 'Archivo inválido o muy grande',
   })
-  @UseGuards(JwtAuthGuard)
   @Post('picture')
   @UseInterceptors(FileInterceptor('file'))
   async uploadProfilePicture(@Req() req, @UploadedFile() file: Multer.File) {
@@ -94,7 +93,6 @@ export class UserProfileController {
 
     description: 'Lista de direcciones obtenida exitosamente',
   })
-  @UseGuards(JwtAuthGuard)
   @Get('addresses')
   async getAddresses(@Req() req) {
     return this.userProfileService.getUserAddresses(req.user.userId);
@@ -111,7 +109,6 @@ export class UserProfileController {
 
     description: 'Ya existe una dirección con esa etiqueta',
   })
-  @UseGuards(JwtAuthGuard)
   @Post('addresses')
   async createAddress(@Req() req, @Body() createAddressDto: CreateAddressDto) {
     return this.userProfileService.createAddress(
@@ -139,7 +136,6 @@ export class UserProfileController {
 
     description: 'Dirección no encontrada',
   })
-  @UseGuards(JwtAuthGuard)
   @Put('addresses/:addressId')
   async updateAddress(
     @Req() req,
@@ -175,7 +171,6 @@ export class UserProfileController {
 
     description: 'Dirección no encontrada',
   })
-  @UseGuards(JwtAuthGuard)
   @Delete('addresses/:addressId')
   async deleteAddress(
     @Req() req,
@@ -203,7 +198,6 @@ export class UserProfileController {
 
     description: 'Dirección no encontrada',
   })
-  @UseGuards(JwtAuthGuard)
   @Post('addresses/:addressId/set-default')
   async setDefaultAddress(
     @Req() req,
@@ -222,9 +216,48 @@ export class UserProfileController {
     status: 200,
     description: 'Resultado de validación de dirección',
   })
-  @UseGuards(JwtAuthGuard)
   @Post('addresses/validate')
   async validateAddress(@Body() createAddressDto: CreateAddressDto) {
     return this.userProfileService.validateAddress(createAddressDto);
+  }
+
+  @ApiOperation({ summary: 'Geocodificar dirección específica' })
+  @ApiResponse({
+    status: 200,
+    description: 'Dirección geocodificada exitosamente',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Dirección no encontrada',
+  })
+  @Post('addresses/:addressId/geocode')
+  async geocodeAddress(
+    @Req() req,
+    @Param('addressId', ParseIntPipe) addressId: number,
+  ) {
+    return this.userProfileService.geocodeAddress(req.user.userId, addressId);
+  }
+
+  @ApiOperation({ summary: 'Geocodificar todas las direcciones del usuario' })
+  @ApiResponse({
+    status: 200,
+    description: 'Proceso de geocodificación completado',
+  })
+  @Post('addresses/geocode-all')
+  async geocodeAllAddresses(@Req() req) {
+    return this.userProfileService.geocodeAllAddresses(req.user.userId);
+  }
+
+  @ApiOperation({ summary: 'Obtener direcciones cercanas a una ubicación' })
+  @ApiResponse({
+    status: 200,
+    description: 'Direcciones cercanas obtenidas exitosamente',
+  })
+  @Post('addresses/nearby')
+  async getNearbyAddresses(@Req() req, @Body() dto: NearbyCoordinatesDto) {
+    return this.userProfileService.getNearbyAddressesFromString(
+      req.user.userId,
+      dto.coordinates,
+    );
   }
 }

@@ -8,6 +8,7 @@ import { UpdateProfileUseCase } from './use-cases/basic/update-profile.use-case'
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UploadProfilePictureUseCase } from './use-cases/media/upload-profile-picture.use-case';
 import { ValidateAddressUseCase } from './use-cases/address/validate-address.use-case';
+import { GeocodeAddressUseCase } from './use-cases/address/geocode-address.use-case';
 
 @Injectable()
 export class UserProfileService {
@@ -17,6 +18,7 @@ export class UserProfileService {
     private readonly updateProfileUseCase: UpdateProfileUseCase,
     private readonly uploadProfilePictureUseCase: UploadProfilePictureUseCase,
     private readonly validateAddressUseCase: ValidateAddressUseCase,
+    private readonly geocodeAddressUseCase: GeocodeAddressUseCase,
   ) {}
 
   async getUserProfile(userId: number) {
@@ -61,5 +63,34 @@ export class UserProfileService {
 
   async validateAddress(addressData: CreateAddressDto) {
     return this.validateAddressUseCase.execute(addressData);
+  }
+
+  async geocodeAddress(userId: number, addressId: number) {
+    return this.geocodeAddressUseCase.execute(userId, addressId);
+  }
+
+  async geocodeAllAddresses(userId: number) {
+    return this.geocodeAddressUseCase.geocodeBatch(userId);
+  }
+
+  async getNearbyAddresses(
+    userId: number,
+    latitude: number,
+    longitude: number,
+    radiusKm?: number,
+  ) {
+    return this.geocodeAddressUseCase.getNearbyAddresses(
+      userId,
+      latitude,
+      longitude,
+      radiusKm,
+    );
+  }
+
+  async getNearbyAddressesFromString(userId: number, coordinates: string) {
+    return this.geocodeAddressUseCase.getNearbyAddressesFromString(
+      userId,
+      coordinates,
+    );
   }
 }
