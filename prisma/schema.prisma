@@ -11,6 +11,7 @@ enum Role {
   ADMIN
   USER
   GUEST
+  CASHIER
 }
 
 enum SecurityEventType {
@@ -22,6 +23,33 @@ enum SecurityEventType {
   TWO_FACTOR_DISABLED
   SESSION_LOGOUT
   ACCOUNT_LOCKED
+}
+
+enum OrderType {
+  IMMEDIATE
+  SCHEDULED
+}
+
+enum OrderStatus {
+  PENDING
+  IN_PREPARATION
+  READY_FOR_PICKUP
+  READY_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum DeliveryType {
+  PICKUP
+  DELIVERY
+}
+
+enum NotificationType {
+  ORDER_CREATED
+  ORDER_STATUS_CHANGED
+  SCHEDULED_ORDER_REMINDER
+  PAYMENT_CONFIRMED
+  INVENTORY_LOW
 }
 
 model User {
@@ -48,6 +76,13 @@ model User {
   addresses               Address[]
   defaultAddress          Address?                 @relation("UserDefaultAddress", fields: [defaultAddressId], references: [id])
   defaultAddressId        Int?
+  
+  // Nuevas relaciones para el sistema de ventas
+  cart                    Cart?
+  orders                  Order[]
+  orderStatusChanges      OrderStatusHistory[]
+  notifications           Notification[]
+  loyaltyPoints           LoyaltyPoint[]
 }
 
 model RefreshToken {
@@ -127,6 +162,284 @@ model Address {
   updatedAt      DateTime  @updatedAt
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   defaultForUser User[]    @relation("UserDefaultAddress")
+  
+  // Nuevas relaciones
+  orders         Order[]
 
   @@unique([userId, label]) // Un usuario no puede tener dos direcciones con el mismo label
+}
+
+// ===== SISTEMA DE PRODUCTOS =====
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  products    Product[]
+}
+
+model Product {
+  id           Int      @id @default(autoincrement())
+  name         String
+  presentation String
+  description  String?
+  price        Decimal  @db.Decimal(10,2)
+  hasGifts     Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  categoryId   Int?
+  imageUrl     String?
+  stockQuantity Int     @default(0)
+  minStock     Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relaciones
+  category              Category?                   @relation(fields: [categoryId], references: [id])
+  gifts                 ProductGift[]               @relation("ProductGifts")
+  giftForProducts       ProductGift[]               @relation("GiftProducts")
+  cartItems             CartItem[]
+  orderItems            OrderItem[]
+  cartItemGiftSelections CartItemGiftSelection[]
+  orderItemGiftSelections OrderItemGiftSelection[]
+  inventoryMovements    InventoryMovement[]
+  
+  @@unique([name, presentation])
+  @@index([categoryId])
+  @@index([isActive])
+}
+
+model ProductGift {
+  id        Int @id @default(autoincrement())
+  productId Int
+  giftId    Int
+  quantity  Int
+  
+  product Product @relation("ProductGifts", fields: [productId], references: [id], onDelete: Cascade)
+  gift    Product @relation("GiftProducts", fields: [giftId], references: [id], onDelete: Cascade)
+  
+  @@unique([productId, giftId])
+}
+
+// ===== SISTEMA DE CARRITO =====
+
+model Cart {
+  id        Int        @id @default(autoincrement())
+  userId    Int        @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  cartId    Int
+  productId Int
+  quantity  Int
+  createdAt DateTime @default(now())
+  
+  cart          Cart                      @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product       Product                   @relation(fields: [productId], references: [id])
+  selectedGifts CartItemGiftSelection[]
+  
+  @@unique([cartId, productId])
+}
+
+model CartItemGiftSelection {
+  id         Int @id @default(autoincrement())
+  cartItemId Int
+  giftId     Int
+  quantity   Int
+  
+  cartItem CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+  gift     Product  @relation(fields: [giftId], references: [id])
+  
+  @@unique([cartItemId, giftId])
+}
+
+// ===== SISTEMA DE PEDIDOS =====
+
+model Order {
+  id           Int          @id @default(autoincrement())
+  userId       Int
+  type         OrderType
+  status       OrderStatus  @default(PENDING)
+  total        Decimal      @db.Decimal(10,2)
+  subtotal     Decimal      @db.Decimal(10,2)
+  tax          Decimal      @db.Decimal(10,2) @default(0)
+  discount     Decimal      @db.Decimal(10,2) @default(0)
+  scheduledFor DateTime?
+  deliveryType DeliveryType @default(PICKUP)
+  addressId    Int?
+  notes        String?
+  paymentMethod String?
+  isPaid       Boolean      @default(false)
+  paidAt       DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  
+  user         User                   @relation(fields: [userId], references: [id])
+  address      Address?               @relation(fields: [addressId], references: [id])
+  items        OrderItem[]
+  statusHistory OrderStatusHistory[]
+  notifications Notification[]
+  loyaltyPoints LoyaltyPoint[]
+  
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([scheduledFor])
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10,2)
+  
+  order         Order                     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product       Product                   @relation(fields: [productId], references: [id])
+  selectedGifts OrderItemGiftSelection[]
+}
+
+model OrderItemGiftSelection {
+  id          Int @id @default(autoincrement())
+  orderItemId Int
+  giftId      Int
+  quantity    Int
+  
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  gift      Product   @relation(fields: [giftId], references: [id])
+  
+  @@unique([orderItemId, giftId])
+}
+
+model OrderStatusHistory {
+  id        Int         @id @default(autoincrement())
+  orderId   Int
+  status    OrderStatus
+  changedAt DateTime    @default(now())
+  changedBy Int?
+  notes     String?
+  
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [changedBy], references: [id])
+  
+  @@index([orderId])
+}
+
+// ===== SISTEMA DE AGENDAMIENTO =====
+
+model SchedulingRule {
+  id                Int     @id @default(autoincrement())
+  dayOfWeek         Int     // 0=Domingo, 1=Lunes, etc.
+  isActive          Boolean @default(true)
+  minAmount         Decimal? @db.Decimal(10,2)
+  minChickenQuantity Int?
+  startTime         String? // "09:00"
+  endTime           String? // "18:00"
+  description       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([dayOfWeek])
+}
+
+// ===== SISTEMA DE NOTIFICACIONES =====
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  orderId   Int?
+  type      NotificationType
+  title     String
+  message   String           @db.Text
+  isRead    Boolean          @default(false)
+  sentAt    DateTime?
+  createdAt DateTime         @default(now())
+  
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order Order? @relation(fields: [orderId], references: [id])
+  
+  @@index([userId, isRead])
+}
+
+// ===== SISTEMA DE INVENTARIO =====
+
+model InventoryMovement {
+  id          Int      @id @default(autoincrement())
+  productId   Int
+  type        String   // "IN", "OUT", "ADJUSTMENT"
+  quantity    Int
+  reason      String?
+  reference   String?  // Referencia al pedido, ajuste, etc.
+  createdBy   Int?
+  createdAt   DateTime @default(now())
+  
+  product Product @relation(fields: [productId], references: [id])
+  
+  @@index([productId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ===== SISTEMA DE PROMOCIONES =====
+
+model Promotion {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  type        String   // "PERCENTAGE", "FIXED_AMOUNT", "FREE_PRODUCT"
+  value       Decimal  @db.Decimal(10,2)
+  minAmount   Decimal? @db.Decimal(10,2)
+  maxDiscount Decimal? @db.Decimal(10,2)
+  isActive    Boolean  @default(true)
+  startDate   DateTime
+  endDate     DateTime
+  usageLimit  Int?
+  usageCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([isActive, startDate, endDate])
+}
+
+// ===== SISTEMA DE LEALTAD =====
+
+model LoyaltyPoint {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  orderId     Int?
+  points      Int
+  type        String   // "EARNED", "REDEEMED", "EXPIRED"
+  description String?
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order Order? @relation(fields: [orderId], references: [id])
+  
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ===== SISTEMA DE REPORTES =====
+
+model DailySalesReport {
+  id            Int      @id @default(autoincrement())
+  date          DateTime @unique @db.Date
+  totalSales    Decimal  @db.Decimal(10,2)
+  totalOrders   Int
+  averageOrder  Decimal  @db.Decimal(10,2)
+  topProducts   Json?
+  createdAt     DateTime @default(now())
+  
+  @@index([date])
 }

@@ -1,98 +1,212 @@
+# 🍗 ChickenCore - Sistema de Ventas Avanzado
+
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+  <img src="https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS" />
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white" alt="Prisma" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## 📋 Descripción
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+**ChickenCore** es un sistema completo de ventas especializado en pollos asados con funcionalidades avanzadas de:
 
-## Description
+- 🛒 **Carrito inteligente** con selección de regalos
+- 📅 **Pedidos agendados** con reglas de negocio configurables
+- 📦 **Gestión de inventario** en tiempo real
+- 👥 **Múltiples roles** (Admin, Cajero, Usuario)
+- 📊 **Reportes y analytics** detallados
+- 🔔 **Notificaciones automáticas**
+- 📱 **Diseño responsive** para web y móvil
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🚀 Inicio Rápido
 
-## Project setup
+### Requisitos Previos
+- Node.js 18+
+- PostgreSQL 14+
+- Docker y Docker Compose (opcional)
+
+### Instalación
 
 ```bash
-$ npm install
+# Clonar el repositorio
+git clone <repository-url>
+cd chickencore
+
+# Instalar dependencias
+npm install
+
+# Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus configuraciones
+
+# Configurar base de datos
+npm run db:generate
+npm run db:migrate
+npm run db:seed
 ```
 
-## Compile and run the project
+### Desarrollo
 
 ```bash
-# development
-$ npm run start
+# Modo desarrollo
+npm run start:dev
 
-# watch mode
-$ npm run start:dev
+# Modo producción
+npm run start:prod
 
-# production mode
-$ npm run start:prod
+# Con Docker
+docker-compose up -d
 ```
 
-## Run tests
+## 🏗️ Arquitectura del Sistema
+
+### Módulos Principales
+
+- **🔐 Auth**: Autenticación JWT, roles y permisos
+- **👤 User Profile**: Gestión de perfiles y direcciones
+- **📦 Products**: Catálogo de productos con regalos
+- **🛒 Cart**: Carrito inteligente con validaciones
+- **📋 Orders**: Pedidos inmediatos y agendados
+- **📅 Scheduling**: Reglas de agendamiento configurables
+
+### Stack Tecnológico
+
+- **Backend**: NestJS + TypeScript + Prisma + PostgreSQL
+- **Autenticación**: JWT + Passport
+- **Documentación**: Swagger/OpenAPI
+- **Validación**: Class Validator + Class Transformer
+- **Logging**: Winston
+- **Containerización**: Docker
+
+## 📚 Documentación
+
+- 📖 **[Análisis y Feedback](./FEEDBACK_Y_ANALISIS.md)** - Análisis completo del proyecto
+- 🏗️ **[Arquitectura Frontend](./FRONTEND_ARCHITECTURE.md)** - Guía para implementar el frontend
+- 🚀 **[Guía de Despliegue](./DEPLOYMENT_GUIDE.md)** - Instrucciones de despliegue completas
+
+## 🔧 Scripts Disponibles
 
 ```bash
-# unit tests
-$ npm run test
+# Desarrollo
+npm run start:dev          # Servidor en modo desarrollo
+npm run start:debug        # Servidor con debug
 
-# e2e tests
-$ npm run test:e2e
+# Base de datos
+npm run db:generate         # Generar cliente Prisma
+npm run db:migrate          # Ejecutar migraciones
+npm run db:seed            # Poblar con datos iniciales
+npm run db:reset           # Resetear y poblar BD
 
-# test coverage
-$ npm run test:cov
+# Producción
+npm run build              # Construir aplicación
+npm run start:prod         # Servidor en producción
+
+# Testing
+npm run test               # Tests unitarios
+npm run test:e2e           # Tests end-to-end
+npm run test:cov           # Coverage de tests
 ```
 
-## Deployment
+## 🌟 Características Principales
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Sistema de Productos con Regalos
+- Productos con regalos configurables
+- Selección inteligente de regalos por el usuario
+- Validaciones automáticas de cantidades permitidas
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Carrito Inteligente
+- Persistencia de carrito por usuario
+- Cálculo automático de totales con impuestos
+- Validación de stock en tiempo real
+- Selección de regalos por producto
 
+### Pedidos Agendados
+- Reglas de agendamiento configurables por día
+- Validación de montos mínimos y cantidades
+- Horarios de entrega personalizables
+- Notificaciones automáticas
+
+### Gestión de Inventario
+- Control de stock en tiempo real
+- Movimientos de inventario rastreables
+- Alertas de stock bajo
+- Ajustes manuales de inventario
+
+## 🔑 Usuarios de Prueba
+
+Después de ejecutar `npm run db:seed`:
+
+```
+👤 Admin: admin@chickencore.com / password123
+👤 Cajero: cajero@chickencore.com / password123
+👤 Usuario: usuario@test.com / password123
+```
+
+## 📊 API Endpoints
+
+### Autenticación
+- `POST /auth/login` - Iniciar sesión
+- `POST /auth/register` - Registrar usuario
+- `GET /auth/profile` - Obtener perfil
+
+### Productos
+- `GET /products` - Listar productos
+- `GET /products/:id` - Obtener producto
+- `GET /products/gifts` - Productos disponibles como regalos
+- `GET /categories` - Listar categorías
+
+### Carrito
+- `GET /cart` - Obtener carrito
+- `POST /cart/add` - Agregar al carrito
+- `PATCH /cart/items/:id` - Actualizar cantidad
+- `DELETE /cart/items/:id` - Eliminar del carrito
+
+### Pedidos
+- `POST /orders` - Crear pedido
+- `GET /orders` - Listar pedidos
+- `GET /orders/my-orders` - Mis pedidos
+- `PATCH /orders/:id/status` - Actualizar estado
+
+### Agendamiento
+- `GET /scheduling/info/weekly` - Información semanal
+- `POST /scheduling/validate` - Validar agendamiento
+- `GET /scheduling/time-slots` - Horarios disponibles
+
+## 🚀 Despliegue
+
+### Desarrollo Local
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Con Docker
+docker-compose up -d
+
+# Sin Docker
+npm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Producción
+Ver [Guía de Despliegue](./DEPLOYMENT_GUIDE.md) para instrucciones completas.
 
-## Resources
+## 🤝 Contribuir
 
-Check out a few resources that may come in handy when working with NestJS:
+1. Fork el proyecto
+2. Crea tu feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push al branch (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 📝 Licencia
 
-## Support
+Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 📞 Soporte
 
-## Stay in touch
+Para preguntas y soporte, puedes:
+- Crear un issue en GitHub
+- Consultar la documentación en los archivos MD del proyecto
+- Revisar los ejemplos en el código
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+---
 
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+**¡Construido con ❤️ para revolucionar las ventas de pollo asado!** 🍗
