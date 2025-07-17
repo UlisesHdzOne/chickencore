@@ -1,6 +1,5 @@
 import { GetNearbyServicesUseCase } from './use-cases/location/get-nearby-services.use-case';
 import { Multer } from 'multer';
-import { ManageAddressesUseCase } from './use-cases/address/manage-addresses.use-case';
 import { Injectable } from '@nestjs/common';
 import { GetUserProfileUseCase } from './use-cases/basic/get-user-profile.use-case';
 import { UpdateAddressDto } from './dto/update-address.dto';
@@ -10,12 +9,21 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UploadProfilePictureUseCase } from './use-cases/media/upload-profile-picture.use-case';
 import { ValidateAddressUseCase } from './use-cases/address/validate-address.use-case';
 import { GeocodeAddressUseCase } from './use-cases/address/geocode-address.use-case';
+import { GetUserAddressesUseCase } from './use-cases/address/get-user-addresses.usecase';
+import { CreateAddressUseCase } from './use-cases/address/create-address.usecase';
+import { UpdateAddressUseCase } from './use-cases/address/update-address.usecase';
+import { DeleteAddressUseCase } from './use-cases/address/delete-address.usecase';
+import { SetDefaultAddressUseCase } from './use-cases/address/set-default-address.usecase';
 
 @Injectable()
 export class UserProfileService {
   constructor(
     private readonly getUserProfileUseCase: GetUserProfileUseCase,
-    private readonly manageAddressesUseCase: ManageAddressesUseCase,
+    private readonly getUserAddressesUseCase: GetUserAddressesUseCase,
+    private readonly createAddressUseCase: CreateAddressUseCase,
+    private readonly updateAddressUseCase: UpdateAddressUseCase,
+    private readonly deleteAddressUseCase: DeleteAddressUseCase,
+    private readonly setDefaultAddressUseCase: SetDefaultAddressUseCase,
     private readonly updateProfileUseCase: UpdateProfileUseCase,
     private readonly uploadProfilePictureUseCase: UploadProfilePictureUseCase,
     private readonly validateAddressUseCase: ValidateAddressUseCase,
@@ -37,10 +45,10 @@ export class UserProfileService {
 
   // Métodos de direcciones
   async getUserAddresses(userId: number) {
-    return this.manageAddressesUseCase.getUserAddresses(userId);
+    return this.getUserAddressesUseCase.execute(userId);
   }
   async createAddress(userId: number, createAddressDto: CreateAddressDto) {
-    return this.manageAddressesUseCase.createAddress(userId, createAddressDto);
+    return this.createAddressUseCase.execute(userId, createAddressDto);
   }
 
   async updateAddress(
@@ -48,7 +56,7 @@ export class UserProfileService {
     addressId: number,
     updateAddressDto: UpdateAddressDto,
   ) {
-    return this.manageAddressesUseCase.updateAddress(
+    return this.updateAddressUseCase.execute(
       userId,
       addressId,
       updateAddressDto,
@@ -56,11 +64,11 @@ export class UserProfileService {
   }
 
   async deleteAddress(userId: number, addressId: number) {
-    return this.manageAddressesUseCase.deleteAddress(userId, addressId);
+    return this.deleteAddressUseCase.execute(userId, addressId);
   }
 
   async setDefaultAddress(userId: number, addressId: number) {
-    return this.manageAddressesUseCase.setDefaultAddress(userId, addressId);
+    return this.setDefaultAddressUseCase.execute(userId, addressId);
   }
 
   async validateAddress(addressData: CreateAddressDto) {
