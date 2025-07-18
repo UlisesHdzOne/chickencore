@@ -1,4 +1,3 @@
-import { GetNearbyServicesUseCase } from './use-cases/location/get-nearby-services.use-case';
 import { Multer } from 'multer';
 import { Injectable } from '@nestjs/common';
 import { GetUserProfileUseCase } from './use-cases/basic/get-user-profile.use-case';
@@ -8,7 +7,6 @@ import { UpdateProfileUseCase } from './use-cases/basic/update-profile.use-case'
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UploadProfilePictureUseCase } from './use-cases/media/upload-profile-picture.use-case';
 import { ValidateAddressUseCase } from './use-cases/address/validate-address.use-case';
-import { GeocodeAddressUseCase } from './use-cases/address/geocode-address.use-case';
 import { GetUserAddressesUseCase } from './use-cases/address/get-user-addresses.usecase';
 import { CreateAddressUseCase } from './use-cases/address/create-address.usecase';
 import { UpdateAddressUseCase } from './use-cases/address/update-address.usecase';
@@ -27,8 +25,6 @@ export class UserProfileService {
     private readonly updateProfileUseCase: UpdateProfileUseCase,
     private readonly uploadProfilePictureUseCase: UploadProfilePictureUseCase,
     private readonly validateAddressUseCase: ValidateAddressUseCase,
-    private readonly geocodeAddressUseCase: GeocodeAddressUseCase,
-    private readonly getNearbyServicesUseCase: GetNearbyServicesUseCase,
   ) {}
 
   async getUserProfile(userId: number) {
@@ -75,65 +71,5 @@ export class UserProfileService {
     return this.validateAddressUseCase.execute(addressData);
   }
 
-  async geocodeAddress(userId: number, addressId: number) {
-    return this.geocodeAddressUseCase.execute(userId, addressId);
-  }
 
-  async geocodeAllAddresses(userId: number) {
-    return this.geocodeAddressUseCase.geocodeBatch(userId);
-  }
-
-  async getNearbyAddresses(
-    userId: number,
-    latitude: number,
-    longitude: number,
-    radiusKm?: number,
-  ) {
-    return this.geocodeAddressUseCase.getNearbyAddresses(
-      userId,
-      latitude,
-      longitude,
-      radiusKm,
-    );
-  }
-
-  async getNearbyAddressesFromString(userId: number, coordinates: string) {
-    return this.getNearbyServicesUseCase.executeFromCoordinatesString(
-      userId,
-      coordinates,
-      { includeAddresses: true, radius: 5 },
-    );
-  }
-
-  // Nuevo método para servicios cercanos con más opciones
-
-  async getNearbyServices(
-    userId: number,
-    coordinates: { latitude: number; longitude: number },
-    options: {
-      radius?: number;
-      serviceTypes?: string[];
-      includeAddresses?: boolean;
-      limit?: number;
-    } = {},
-  ) {
-    return this.getNearbyServicesUseCase.execute(userId, coordinates, options);
-  }
-
-  async getNearbyServicesFromAddress(
-    userId: number,
-    addressId: number,
-    options: {
-      radius?: number;
-      serviceTypes?: string[];
-      includeAddresses?: boolean;
-      limit?: number;
-    } = {},
-  ) {
-    return this.getNearbyServicesUseCase.executeFromAddress(
-      userId,
-      addressId,
-      options,
-    );
-  }
 }

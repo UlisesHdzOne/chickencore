@@ -14,7 +14,11 @@ export class UpdateAddressUseCase {
     private readonly setDefaultAddressUseCase: SetDefaultAddressUseCase,
   ) {}
 
-  async execute(userId: number, addressId: number, dto: UpdateAddressDto) {
+  async execute(
+    userId: number,
+    addressId: number,
+    dto: UpdateAddressDto,
+  ): Promise<any> {
     const existingAddress = await this.prisma.address.findFirst({
       where: { id: addressId, userId },
     });

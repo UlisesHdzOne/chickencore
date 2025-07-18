@@ -8,7 +8,6 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateAddressDto } from '../../dto/create-address.dto';
 import { ValidateAddressUseCase } from './validate-address.use-case';
 import { SetDefaultAddressUseCase } from './set-default-address.usecase';
-
 @Injectable()
 export class CreateAddressUseCase {
   constructor(
@@ -17,11 +16,11 @@ export class CreateAddressUseCase {
     private readonly setDefaultAddressUseCase: SetDefaultAddressUseCase,
   ) {}
 
-  async execute(userId: number, dto: CreateAddressDto) {
+  async execute(userId: number, dto: CreateAddressDto): Promise<any> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
-    let addressToSave = dto;
+    let addressToSave = { ...dto };
     let validationWarnings: string[] = [];
 
     try {
@@ -40,7 +39,7 @@ export class CreateAddressUseCase {
         validationResult.confidence > 0.7
       ) {
         addressToSave = {
-          ...dto,
+          ...addressToSave,
           street: validationResult.standardizedAddress.street || dto.street,
           city: validationResult.standardizedAddress.city || dto.city,
           state: validationResult.standardizedAddress.state || dto.state,
@@ -54,9 +53,11 @@ export class CreateAddressUseCase {
         validationWarnings = validationResult.suggestions;
       }
     } catch (error) {
-      validationWarnings = [
-        'No se pudo validar la dirección con servicios externos',
-      ];
+      if (validationWarnings.length === 0) {
+        validationWarnings = [
+          'No se pudo validar la dirección con servicios externos',
+        ];
+      }
     }
 
     const existingAddress = await this.prisma.address.findFirst({

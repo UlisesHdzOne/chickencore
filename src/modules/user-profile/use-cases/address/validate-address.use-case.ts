@@ -4,6 +4,7 @@ import {
   GeocodingProvidersService,
   ValidationResult,
 } from '../../services/geocoding-providers.service';
+import { AddressValidator } from '../../utils/address-validator';
 
 @Injectable()
 export class ValidateAddressUseCase {
@@ -49,7 +50,7 @@ export class ValidateAddressUseCase {
 
     if (
       !addressData.postalCode ||
-      !this.validatePostalCode(addressData.postalCode)
+      !AddressValidator.validatePostalCode(addressData.postalCode)
     ) {
       errors.push('El código postal no tiene un formato válido');
     }
@@ -58,7 +59,7 @@ export class ValidateAddressUseCase {
     if (addressData.country === 'Mexico' || !addressData.country) {
       if (
         addressData.postalCode &&
-        !this.validateMexicanPostalCode(addressData.postalCode)
+        !AddressValidator.validateMexicanPostalCode(addressData.postalCode)
       ) {
         errors.push('El código postal no es válido para México');
         suggestions.push(
@@ -66,13 +67,16 @@ export class ValidateAddressUseCase {
         );
       }
 
-      if (addressData.state && !this.validateMexicanState(addressData.state)) {
+      if (
+        addressData.state &&
+        !AddressValidator.validateMexicanState(addressData.state)
+      ) {
         suggestions.push('Verifica que el estado esté correctamente escrito');
       }
     }
 
     // Validar caracteres especiales
-    if (this.hasInvalidCharacters(addressData.street)) {
+    if (AddressValidator.hasInvalidCharacters(addressData.street)) {
       errors.push('La calle contiene caracteres no válidos');
     }
 
@@ -87,17 +91,14 @@ export class ValidateAddressUseCase {
   private async validateWithExternalServices(
     addressData: CreateAddressDto,
   ): Promise<ValidationResult> {
-    // Construir dirección completa para geocodificación
     const fullAddress = `${addressData.street}, ${addressData.city}, ${addressData.state} ${addressData.postalCode}, ${addressData.country || 'Mexico'}`;
 
     try {
-      // Intentar con múltiples servicios
       const results = await Promise.allSettled([
         this.geocodingProviders.validateWithNominatim(fullAddress),
         this.geocodingProviders.validateWithOpenCage(fullAddress),
       ]);
 
-      // Procesar resultados
       const successfulResults = results
         .filter(
           (result): result is PromiseFulfilledResult<ValidationResult> =>
@@ -106,13 +107,11 @@ export class ValidateAddressUseCase {
         .map((result) => result.value);
 
       if (successfulResults.length > 0) {
-        // Retornar el mejor resultado
         return successfulResults.reduce((best, current) =>
           current.confidence > best.confidence ? current : best,
         );
       }
 
-      // Si no hay resultados exitosos, retornar validación básica
       return {
         isValid: false,
         confidence: 0.3,
@@ -124,64 +123,7 @@ export class ValidateAddressUseCase {
       };
     } catch (error) {
       console.error('Error en validación externa:', error);
-      // Retornar validación básica en caso de error
       return this.validateBasicFormat(addressData);
     }
-  }
-
-  private validatePostalCode(postalCode: string): boolean {
-    // Validación básica - solo números y guiones
-    return /^[\d-]+$/.test(postalCode);
-  }
-
-  private validateMexicanPostalCode(postalCode: string): boolean {
-    // Códigos postales mexicanos: 5 dígitos
-    return /^\d{5}$/.test(postalCode);
-  }
-
-  private validateMexicanState(state: string): boolean {
-    const mexicanStates = [
-      'Aguascalientes',
-      'Baja California',
-      'Baja California Sur',
-      'Campeche',
-      'Chiapas',
-      'Chihuahua',
-      'Coahuila',
-      'Colima',
-      'Durango',
-      'Guanajuato',
-      'Guerrero',
-      'Hidalgo',
-      'Jalisco',
-      'México',
-      'Michoacán',
-      'Morelos',
-      'Nayarit',
-      'Nuevo León',
-      'Oaxaca',
-      'Puebla',
-      'Querétaro',
-      'Quintana Roo',
-      'San Luis Potosí',
-      'Sinaloa',
-      'Sonora',
-      'Tabasco',
-      'Tamaulipas',
-      'Tlaxcala',
-      'Veracruz',
-      'Yucatán',
-      'Zacatecas',
-      'Ciudad de México',
-    ];
-
-    return mexicanStates.some(
-      (validState) => validState.toLowerCase() === state.toLowerCase(),
-    );
-  }
-
-  private hasInvalidCharacters(text: string): boolean {
-    // Permitir letras, números, espacios y algunos caracteres especiales comunes
-    return !/^[a-zA-ZÁÉÍÓÚáéíóúÑñ0-9\s\-#.,]+$/.test(text);
   }
 }
